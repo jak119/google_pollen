@@ -1,13 +1,11 @@
-"""Config flow for the Google Air Quality integration."""
+"""Config flow for the Google Pollen integration."""
 
 from __future__ import annotations
 
 import logging
 from typing import Any
 
-from google_air_quality_api.api import GoogleAirQualityApi
-from google_air_quality_api.auth import Auth
-from google_air_quality_api.exceptions import GoogleAirQualityApiError
+from .google_pollen_api import GooglePollenApi, GooglePollenApiError
 import voluptuous as vol
 
 from homeassistant.config_entries import (
@@ -47,7 +45,7 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
 
 async def _validate_input(
     user_input: dict[str, Any],
-    api: GoogleAirQualityApi,
+    api: GooglePollenApi,
     errors: dict[str, str],
     description_placeholders: dict[str, str],
 ) -> bool:
@@ -56,7 +54,7 @@ async def _validate_input(
             lat=user_input[CONF_LOCATION][CONF_LATITUDE],
             lon=user_input[CONF_LOCATION][CONF_LONGITUDE],
         )
-    except GoogleAirQualityApiError as err:
+    except GooglePollenApiError as err:
         errors["base"] = "cannot_connect"
         description_placeholders["error_message"] = str(err)
     except Exception:
@@ -89,9 +87,6 @@ def _is_location_already_configured(
     """Check if the location is already configured."""
     for entry in hass.config_entries.async_entries(DOMAIN):
         for subentry in entry.subentries.values():
-            # A more accurate way is to use the haversine formula, but for simplicity
-            # we use a simple distance check. The epsilon value is small anyway.
-            # This is mostly to capture cases where the user has slightly moved the location pin.
             if (
                 abs(subentry.data[CONF_LATITUDE] - new_data[CONF_LATITUDE]) <= epsilon
                 and abs(subentry.data[CONF_LONGITUDE] - new_data[CONF_LONGITUDE])
@@ -110,8 +105,8 @@ def _is_location_name_already_configured(hass: HomeAssistant, new_data: str) -> 
     return False
 
 
-class GoogleAirQualityConfigFlow(ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for Google AirQuality."""
+class GooglePollenConfigFlow(ConfigFlow, domain=DOMAIN):
+    """Handle a config flow for Google Pollen."""
 
     VERSION = 1
 
@@ -121,7 +116,7 @@ class GoogleAirQualityConfigFlow(ConfigFlow, domain=DOMAIN):
         """Handle the initial step."""
         errors: dict[str, str] = {}
         description_placeholders: dict[str, str] = {
-            "api_key_url": "https://developers.google.com/maps/documentation/air-quality/get-api-key",
+            "api_key_url": "https://developers.google.com/maps/documentation/pollen/get-api-key",
             "restricting_api_keys_url": "https://developers.google.com/maps/api-security-best-practices#restricting-api-keys",
         }
         if user_input is not None:
@@ -131,12 +126,10 @@ class GoogleAirQualityConfigFlow(ConfigFlow, domain=DOMAIN):
             if _is_location_already_configured(self.hass, user_input[CONF_LOCATION]):
                 return self.async_abort(reason="already_configured")
             session = async_get_clientsession(self.hass)
-            referrer = user_input.get(SECTION_API_KEY_OPTIONS, {}).get(CONF_REFERRER)
-            auth = Auth(session, user_input[CONF_API_KEY], referrer=referrer)
-            api = GoogleAirQualityApi(auth)
+            api = GooglePollenApi(session, api_key, referrer=referrer)
             if await _validate_input(user_input, api, errors, description_placeholders):
                 return self.async_create_entry(
-                    title="Google Air Quality",
+                    title="Google Pollen",
                     data={
                         CONF_API_KEY: api_key,
                         CONF_REFERRER: referrer,
@@ -176,8 +169,7 @@ class LocationSubentryFlowHandler(ConfigSubentryFlow):
     """Handle a subentry flow for location."""
 
     async def async_step_location(
-        self,
-        user_input: dict[str, Any] | None = None,
+        self, user_input: dict[str, Any] | None = None
     ) -> SubentryFlowResult:
         """Handle the location step."""
         if self._get_entry().state != ConfigEntryState.LOADED:
@@ -190,7 +182,7 @@ class LocationSubentryFlowHandler(ConfigSubentryFlow):
                 errors["base"] = "location_already_configured"
             if _is_location_name_already_configured(self.hass, user_input[CONF_NAME]):
                 errors["base"] = "location_name_already_configured"
-            api: GoogleAirQualityApi = self._get_entry().runtime_data.api
+            api: GooglePollenApi = self._get_entry().runtime_data.api
             if errors:
                 return self.async_show_form(
                     step_id="location",
@@ -202,8 +194,7 @@ class LocationSubentryFlowHandler(ConfigSubentryFlow):
                 )
             if await _validate_input(user_input, api, errors, description_placeholders):
                 return self.async_create_entry(
-                    title=user_input[CONF_NAME],
-                    data=user_input[CONF_LOCATION],
+                    title=user_input[CONF_NAME], data=user_input[CONF_LOCATION]
                 )
         else:
             user_input = {}
