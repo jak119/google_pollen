@@ -1,16 +1,4 @@
 {
   "name": "Google Pollen",
-  "content_in_root": false,
-  "country": [],
-  "domains": [
-    "sensor"
-  ],
-  "issue_tracker": "https://github.com/jak119/google_pollen/issues",
-  "release_tag": false,
-  "zip_release": true,
-  "filename": "google_pollen",
-  "user": "jak119",
-  "repo": "google_pollen",
-  "homeassistant": "2022.12.0",
-  "render_readme": true
+  "content_in_root": false
 }
