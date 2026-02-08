@@ -15,12 +15,5 @@
   "requirements": [],
   "version": "1.0.0",
   "issue_tracker": "https://github.com/jak119/google_pollen/issues",
-  "dependencies": [],
-  "hacs": {
-    "name": "Google Pollen",
-    "categories": [
-      "integration"
-    ],
-    "render_readme": true
-  }
+  "dependencies": []
 }
