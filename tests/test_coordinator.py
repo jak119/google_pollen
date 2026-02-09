@@ -1,25 +1,13 @@
 """Test the Google Pollen coordinator."""
 
-from datetime import timedelta
-from unittest.mock import AsyncMock, patch
 
 import pytest
-
-from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import UpdateFailed
-from homeassistant.util import dt as dt_util
 
-from custom_components.google_pollen.const import DOMAIN
 from custom_components.google_pollen.coordinator import GooglePollenUpdateCoordinator
 from custom_components.google_pollen.google_pollen_api import (
     GooglePollenApiError,
-    PollenCurrentConditionsData,
-)
-
-from pytest_homeassistant_custom_component.common import (
-    MockConfigEntry,
-    async_fire_time_changed,
 )
 
 

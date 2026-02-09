@@ -1,9 +1,8 @@
 """Creates the sensor entities for Google Pollen."""
 
+import logging
 from collections.abc import Callable
 from dataclasses import dataclass
-import logging
-from typing import TYPE_CHECKING
 
 from homeassistant.components.sensor import (
     SensorEntity,

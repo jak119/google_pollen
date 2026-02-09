@@ -9,13 +9,12 @@ pytest_plugins = "pytest_homeassistant_custom_component"
 
 from homeassistant.const import CONF_API_KEY, CONF_LATITUDE, CONF_LONGITUDE
 from homeassistant.core import HomeAssistant
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.google_pollen.const import CONF_REFERRER
 from custom_components.google_pollen.google_pollen_api import (
     PollenCurrentConditionsData,
 )
-
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 
 # This fixture enables loading custom integrations in all tests
@@ -24,7 +23,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 @pytest.fixture(autouse=True)
 def auto_enable_custom_integrations(enable_custom_integrations):
     """Enable custom integrations for all tests."""
-    yield
+    return
 
 
 def create_mock_entry_with_subentry(
@@ -35,8 +34,10 @@ def create_mock_entry_with_subentry(
     subentry_id: str = "test_subentry_id",
 ) -> tuple[MockConfigEntry, str]:
     """Create a mock config entry with a subentry."""
-    from homeassistant.config_entries import ConfigSubentry
     from types import MappingProxyType
+
+    from homeassistant.config_entries import ConfigSubentry
+
     from custom_components.google_pollen.const import DOMAIN
 
     # Create main config entry

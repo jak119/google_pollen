@@ -1,17 +1,10 @@
 """Test the Google Pollen sensor platform."""
 
-from unittest.mock import patch
 
-import pytest
 
-from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
-from homeassistant.const import CONF_API_KEY, STATE_UNKNOWN
+from homeassistant.const import STATE_UNKNOWN
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
-
-from custom_components.google_pollen.const import DOMAIN
-
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 
 async def test_sensor_setup(

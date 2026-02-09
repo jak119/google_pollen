@@ -5,9 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from .google_pollen_api import GooglePollenApi, GooglePollenApiError
 import voluptuous as vol
-
 from homeassistant.config_entries import (
     ConfigEntry,
     ConfigEntryState,
@@ -29,6 +27,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import LocationSelector, LocationSelectorConfig
 
 from .const import CONF_REFERRER, DOMAIN, SECTION_API_KEY_OPTIONS
+from .google_pollen_api import GooglePollenApi, GooglePollenApiError
 
 _LOGGER = logging.getLogger(__name__)
 

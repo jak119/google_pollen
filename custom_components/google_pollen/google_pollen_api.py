@@ -1,4 +1,5 @@
-"""Minimal async client and model for Google's Pollen API.
+"""
+Minimal async client and model for Google's Pollen API.
 
 This is a lightweight client intended to be sufficient for the integration.
 The real Google API response shape may differ; parsing is defensive and
@@ -9,6 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Any
+
 import aiohttp
 
 
@@ -26,7 +28,8 @@ class PollenCurrentConditionsData:
 
 
 class GooglePollenApi:
-    """Simple client for Google Pollen API.
+    """
+    Simple client for Google Pollen API.
 
     The client expects an aiohttp session and an API key. It makes a single
     GET request to the pollen endpoint and returns a parsed data model.
@@ -44,7 +47,8 @@ class GooglePollenApi:
     async def async_get_current_conditions(
         self, lat: float, lon: float
     ) -> PollenCurrentConditionsData:
-        """Fetch current pollen conditions for the given coordinates.
+        """
+        Fetch current pollen conditions for the given coordinates.
 
         The implementation is defensive: it accepts a variety of JSON shapes and
         extracts an overall index and per-type values (tree, grass, weed) if

@@ -1,16 +1,13 @@
 """Test the Google Pollen integration init."""
 
-from unittest.mock import AsyncMock, patch
 
-import pytest
 
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_API_KEY
 from homeassistant.core import HomeAssistant
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.google_pollen.const import DOMAIN
-
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 
 async def test_setup_entry(

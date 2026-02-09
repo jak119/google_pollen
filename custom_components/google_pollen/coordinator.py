@@ -1,8 +1,8 @@
 """Coordinator for fetching data from Google Pollen API."""
 
+import logging
 from dataclasses import dataclass
 from datetime import timedelta
-import logging
 from typing import Final
 
 from homeassistant.config_entries import ConfigEntry

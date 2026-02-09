@@ -1,8 +1,6 @@
 """Test the Google Pollen config flow."""
 
-from unittest.mock import AsyncMock, patch
-
-import pytest
+from unittest.mock import patch
 
 from homeassistant import config_entries
 from homeassistant.const import (
@@ -14,6 +12,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.google_pollen.const import (
     CONF_REFERRER,
@@ -21,8 +20,6 @@ from custom_components.google_pollen.const import (
     SECTION_API_KEY_OPTIONS,
 )
 from custom_components.google_pollen.google_pollen_api import GooglePollenApiError
-
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 
 async def test_form(hass: HomeAssistant, mock_google_pollen_api) -> None:
