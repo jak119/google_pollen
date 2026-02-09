@@ -35,7 +35,7 @@ class GooglePollenApi:
     GET request to the pollen endpoint and returns a parsed data model.
     """
 
-    BASE_URL = "https://maps.googleapis.com/maps/api/pollen/v1"
+    BASE_URL = "https://pollen.googleapis.com/v1/forecast:lookup"
 
     def __init__(
         self, session: aiohttp.ClientSession, api_key: str, referrer: str | None = None
@@ -54,8 +54,13 @@ class GooglePollenApi:
         extracts an overall index and per-type values (tree, grass, weed) if
         present.
         """
-        params = {"key": self._api_key, "location": f"{lat},{lon}"}
-        url = f"{self.BASE_URL}/currentConditions"
+        params = {
+            "key": self._api_key,
+            "location": f"{lat},{lon}",
+            "days": 1,
+            "plantsDescription": 0,  # Don't return details on specific plants
+        }
+        url = f"{self.BASE_URL}"
         headers = {}
         if self._referrer:
             headers["Referer"] = self._referrer
