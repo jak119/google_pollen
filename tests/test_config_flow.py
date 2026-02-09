@@ -5,11 +5,21 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from homeassistant import config_entries
-from homeassistant.const import CONF_API_KEY, CONF_LATITUDE, CONF_LOCATION, CONF_LONGITUDE, CONF_NAME
+from homeassistant.const import (
+    CONF_API_KEY,
+    CONF_LATITUDE,
+    CONF_LOCATION,
+    CONF_LONGITUDE,
+    CONF_NAME,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
-from custom_components.google_pollen.const import CONF_REFERRER, DOMAIN, SECTION_API_KEY_OPTIONS
+from custom_components.google_pollen.const import (
+    CONF_REFERRER,
+    DOMAIN,
+    SECTION_API_KEY_OPTIONS,
+)
 from custom_components.google_pollen.google_pollen_api import GooglePollenApiError
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -85,8 +95,8 @@ async def test_form_cannot_connect(hass: HomeAssistant, mock_google_pollen_api) 
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
 
-    mock_google_pollen_api.async_get_current_conditions.side_effect = GooglePollenApiError(
-        "Connection failed"
+    mock_google_pollen_api.async_get_current_conditions.side_effect = (
+        GooglePollenApiError("Connection failed")
     )
 
     with patch(
@@ -139,7 +149,9 @@ async def test_form_unknown_error(hass: HomeAssistant, mock_google_pollen_api) -
     assert result2["errors"] == {"base": "unknown"}
 
 
-async def test_form_already_configured(hass: HomeAssistant, mock_google_pollen_api) -> None:
+async def test_form_already_configured(
+    hass: HomeAssistant, mock_google_pollen_api
+) -> None:
     """Test duplicate API key aborts."""
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -173,14 +185,20 @@ async def test_form_already_configured(hass: HomeAssistant, mock_google_pollen_a
 
 
 async def test_location_already_configured(
-    hass: HomeAssistant, mock_google_pollen_api, mock_config_entry_data, mock_subentry_data
+    hass: HomeAssistant,
+    mock_google_pollen_api,
+    mock_config_entry_data,
+    mock_subentry_data,
 ) -> None:
     """Test location already configured."""
     from tests.conftest import create_mock_entry_with_subentry
 
     # Set up existing entry with subentry
     create_mock_entry_with_subentry(
-        hass, mock_config_entry_data, mock_subentry_data, subentry_title="Existing Location"
+        hass,
+        mock_config_entry_data,
+        mock_subentry_data,
+        subentry_title="Existing Location",
     )
 
     result = await hass.config_entries.flow.async_init(

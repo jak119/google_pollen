@@ -17,11 +17,17 @@ from custom_components.google_pollen.google_pollen_api import (
     PollenCurrentConditionsData,
 )
 
-from pytest_homeassistant_custom_component.common import MockConfigEntry, async_fire_time_changed
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_fire_time_changed,
+)
 
 
 async def test_coordinator_update_success(
-    hass: HomeAssistant, mock_google_pollen_api, mock_config_entry_data, mock_subentry_data
+    hass: HomeAssistant,
+    mock_google_pollen_api,
+    mock_config_entry_data,
+    mock_subentry_data,
 ) -> None:
     """Test successful data update."""
     from tests.conftest import create_mock_entry_with_subentry
@@ -44,7 +50,10 @@ async def test_coordinator_update_success(
 
 
 async def test_coordinator_update_failed(
-    hass: HomeAssistant, mock_google_pollen_api, mock_config_entry_data, mock_subentry_data
+    hass: HomeAssistant,
+    mock_google_pollen_api,
+    mock_config_entry_data,
+    mock_subentry_data,
 ) -> None:
     """Test failed data update."""
     from tests.conftest import create_mock_entry_with_subentry
@@ -53,8 +62,8 @@ async def test_coordinator_update_failed(
         hass, mock_config_entry_data, mock_subentry_data
     )
 
-    mock_google_pollen_api.async_get_current_conditions.side_effect = GooglePollenApiError(
-        "API Error"
+    mock_google_pollen_api.async_get_current_conditions.side_effect = (
+        GooglePollenApiError("API Error")
     )
 
     coordinator = GooglePollenUpdateCoordinator(
@@ -69,7 +78,10 @@ async def test_coordinator_update_failed(
 
 
 async def test_coordinator_interval_update(
-    hass: HomeAssistant, mock_google_pollen_api, mock_config_entry_data, mock_subentry_data
+    hass: HomeAssistant,
+    mock_google_pollen_api,
+    mock_config_entry_data,
+    mock_subentry_data,
 ) -> None:
     """Test coordinator can be refreshed multiple times."""
     from tests.conftest import create_mock_entry_with_subentry

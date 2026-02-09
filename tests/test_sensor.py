@@ -63,7 +63,9 @@ async def test_sensor_missing_data(
     mock_subentry_data,
 ) -> None:
     """Test sensors handle missing data gracefully."""
-    from custom_components.google_pollen.google_pollen_api import PollenCurrentConditionsData
+    from custom_components.google_pollen.google_pollen_api import (
+        PollenCurrentConditionsData,
+    )
     from tests.conftest import create_mock_entry_with_subentry
 
     # Mock API with minimal data - need to modify the class-level mock

@@ -102,9 +102,7 @@ async def test_api_timeout(mock_session):
     """Test API timeout."""
     api = GooglePollenApi(mock_session, "test_api_key")
 
-    mock_session.get = MagicMock(
-        side_effect=aiohttp.ServerTimeoutError("Timeout")
-    )
+    mock_session.get = MagicMock(side_effect=aiohttp.ServerTimeoutError("Timeout"))
 
     with pytest.raises(GooglePollenApiError):
         await api.async_get_current_conditions(37.7749, -122.4194)
