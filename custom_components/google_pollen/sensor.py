@@ -49,18 +49,21 @@ POLLEN_SENSOR_TYPES: tuple[PollenSensorEntityDescription, ...] = (
     PollenSensorEntityDescription(
         key="tree_pollen",
         translation_key="tree_pollen",
+        state_class=SensorStateClass.MEASUREMENT,
         exists_fn=lambda x: "tree" in x.types,
         value_fn=lambda x: x.types.get("tree", {}).get("value"),
     ),
     PollenSensorEntityDescription(
         key="grass_pollen",
         translation_key="grass_pollen",
+        state_class=SensorStateClass.MEASUREMENT,
         exists_fn=lambda x: "grass" in x.types,
         value_fn=lambda x: x.types.get("grass", {}).get("value"),
     ),
     PollenSensorEntityDescription(
         key="weed_pollen",
         translation_key="weed_pollen",
+        state_class=SensorStateClass.MEASUREMENT,
         exists_fn=lambda x: "weed" in x.types,
         value_fn=lambda x: x.types.get("weed", {}).get("value"),
     ),
