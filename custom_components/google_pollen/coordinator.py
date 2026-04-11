@@ -19,7 +19,7 @@ from .google_pollen_api import (
 
 _LOGGER = logging.getLogger(__name__)
 
-UPDATE_INTERVAL: Final = timedelta(hours=1)
+UPDATE_INTERVAL: Final = timedelta(hours=6)
 
 type GooglePollenConfigEntry = ConfigEntry["GooglePollenRuntimeData"]
 
