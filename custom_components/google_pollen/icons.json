@@ -1,14 +1,20 @@
 {
   "entity": {
     "sensor": {
-      "ammonia": {
-        "default": "mdi:molecule"
+      "pollen_index": {
+        "default": "mdi:flower-pollen"
       },
-      "benzene": {
-        "default": "mdi:molecule"
+      "pollen_category": {
+        "default": "mdi:flower-pollen"
       },
-      "non_methane_hydrocarbons": {
-        "default": "mdi:molecule"
+      "tree_pollen": {
+        "default": "mdi:flower-pollen-outline"
+      },
+      "grass_pollen": {
+        "default": "mdi:flower-pollen-outline"
+      },
+      "weed_pollen": {
+        "default": "mdi:flower-pollen-outline"
       }
     }
   }

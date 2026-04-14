@@ -18,11 +18,10 @@ from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
-from .coordinator import GooglePollenUpdateCoordinator
+from .coordinator import GooglePollenConfigEntry, GooglePollenUpdateCoordinator
 from .google_pollen_api import PollenCurrentConditionsData
 
 _LOGGER = logging.getLogger(__name__)
-# Coordinator is used to centralize the data updates
 PARALLEL_UPDATES = 0
 
 
@@ -72,7 +71,7 @@ POLLEN_SENSOR_TYPES: tuple[PollenSensorEntityDescription, ...] = (
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry,
+    entry: GooglePollenConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up sensor platform."""
@@ -94,7 +93,7 @@ async def async_setup_entry(
 class PollenSensorEntity(
     CoordinatorEntity[GooglePollenUpdateCoordinator], SensorEntity
 ):
-    """Defining the Pollen Sensors with PollenSensorEntityDescription."""
+    """Pollen sensor entity."""
 
     entity_description: PollenSensorEntityDescription
     _attr_attribution = "Data provided by Google Pollen"
