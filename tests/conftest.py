@@ -1,7 +1,6 @@
 """Common fixtures for Google Pollen tests."""
 
-from collections.abc import Generator
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -18,8 +17,6 @@ from custom_components.google_pollen.google_pollen_api import (
 
 
 # This fixture enables loading custom integrations in all tests
-# Remove to enable selective removal of this fixture to test
-# standard behavior.
 @pytest.fixture(autouse=True)
 def auto_enable_custom_integrations(enable_custom_integrations):
     """Enable custom integrations for all tests."""
@@ -67,15 +64,6 @@ def create_mock_entry_with_subentry(
     config_entry.add_to_hass(hass)
 
     return config_entry, subentry_id
-
-
-@pytest.fixture
-def mock_setup_entry() -> Generator[AsyncMock]:
-    """Override async_setup_entry."""
-    with patch(
-        "custom_components.google_pollen.async_setup_entry", return_value=True
-    ) as mock_setup_entry:
-        yield mock_setup_entry
 
 
 @pytest.fixture
