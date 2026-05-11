@@ -1,6 +1,6 @@
 """Common fixtures for Google Pollen tests."""
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -75,9 +75,27 @@ def mock_google_pollen_api():
             index=3,
             category="High",
             types={
-                "tree": {"value": 4, "category": "Very High"},
-                "grass": {"value": 2, "category": "Moderate"},
-                "weed": {"value": 1, "category": "Low"},
+                "tree": {
+                    "value": 4,
+                    "category": "Very high",
+                    "index_description": "Very high levels of tree pollen",
+                    "color": "#ff8c00",
+                    "health_recommendations": "Wear sunglasses outdoors.",
+                },
+                "grass": {
+                    "value": 2,
+                    "category": "Moderate",
+                    "index_description": "Moderate levels of grass pollen",
+                    "color": "#ffff00",
+                    "health_recommendations": "Consider taking antihistamines.",
+                },
+                "weed": {
+                    "value": 1,
+                    "category": "Low",
+                    "index_description": "Low levels of weed pollen",
+                    "color": "#00ff00",
+                    "health_recommendations": "No specific precautions needed.",
+                },
             },
         )
     )

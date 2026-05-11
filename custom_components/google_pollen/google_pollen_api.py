@@ -25,6 +25,16 @@ class PollenCurrentConditionsData:
     types: dict[str, dict[str, Any]]
 
 
+def _color_to_hex(color: dict[str, Any] | None) -> str | None:
+    """Convert a Google Pollen Color object (0–1 floats) to a #rrggbb hex string."""
+    if not color:
+        return None
+    r = round(color.get("red", 0) * 255)
+    g = round(color.get("green", 0) * 255)
+    b = round(color.get("blue", 0) * 255)
+    return f"#{r:02x}{g:02x}{b:02x}"
+
+
 class GooglePollenApi:
     """
     Simple client for Google Pollen API.
@@ -53,7 +63,7 @@ class GooglePollenApi:
         an overall index (max across in-season types) and per-type values
         for tree, grass, and weed pollen.
         """
-        params = {
+        params: dict[str, str | float | int] = {
             "key": self._api_key,
             "location.latitude": lat,
             "location.longitude": lon,
@@ -98,7 +108,15 @@ class GooglePollenApi:
             value = index_info.get("value")
             category = index_info.get("category")
 
-            types[key] = {"value": value, "category": category}
+            types[key] = {
+                "value": value,
+                "category": category,
+                "index_description": index_info.get("indexDescription"),
+                "color": _color_to_hex(index_info.get("color")),
+                "health_recommendations": "; ".join(
+                    entry.get("healthRecommendations") or []
+                ),
+            }
 
             # Track the highest index across in-season types for the overall reading
             if entry.get("inSeason") and value is not None:

@@ -1,20 +1,56 @@
 {
   "entity": {
     "sensor": {
-      "pollen_index": {
+      "upi_index": {
         "default": "mdi:flower-pollen"
       },
-      "pollen_category": {
+      "upi_category": {
         "default": "mdi:flower-pollen"
       },
-      "tree_pollen": {
-        "default": "mdi:flower-pollen-outline"
+      "tree_pollen_index": {
+        "default": "mdi:tree"
       },
-      "grass_pollen": {
-        "default": "mdi:flower-pollen-outline"
+      "tree_pollen_category": {
+        "default": "mdi:tree"
       },
-      "weed_pollen": {
-        "default": "mdi:flower-pollen-outline"
+      "tree_pollen_index_description": {
+        "default": "mdi:tree"
+      },
+      "tree_pollen_color": {
+        "default": "mdi:tree"
+      },
+      "tree_pollen_health_recommendations": {
+        "default": "mdi:tree"
+      },
+      "grass_pollen_index": {
+        "default": "mdi:grass"
+      },
+      "grass_pollen_category": {
+        "default": "mdi:grass"
+      },
+      "grass_pollen_index_description": {
+        "default": "mdi:grass"
+      },
+      "grass_pollen_color": {
+        "default": "mdi:grass"
+      },
+      "grass_pollen_health_recommendations": {
+        "default": "mdi:grass"
+      },
+      "weed_pollen_index": {
+        "default": "mdi:sprout"
+      },
+      "weed_pollen_category": {
+        "default": "mdi:sprout"
+      },
+      "weed_pollen_index_description": {
+        "default": "mdi:sprout"
+      },
+      "weed_pollen_color": {
+        "default": "mdi:sprout"
+      },
+      "weed_pollen_health_recommendations": {
+        "default": "mdi:sprout"
       }
     }
   }
