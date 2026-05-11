@@ -28,25 +28,34 @@ async def test_sensor_setup(
 
     # Get all entities for the integration
     entities = er.async_entries_for_config_entry(entity_registry, config_entry.entry_id)
-    assert len(entities) == 5  # pollen_index, pollen_category, tree, grass, weed
+    # 2 UPI sensors + 3 types × 5 sensors each = 17 total
+    assert len(entities) == 17
 
     # Get entity IDs
     entity_ids = [entity.entity_id for entity in entities]
 
-    # Verify sensors exist and have correct values
+    # Verify sensors exist and have correct values (enabled sensors only have states)
     for entity_id in entity_ids:
         state = hass.states.get(entity_id)
-        assert state is not None
-        if "pollen_index" in entity_id:
+        if state is None:
+            # Disabled-by-default sensors won't have a state
+            continue
+        if "upi_index" in entity_id:
             assert state.state == "3"
-        elif "pollen_category" in entity_id:
+        elif "upi_category" in entity_id:
             assert state.state == "High"
-        elif "tree_pollen" in entity_id:
+        elif "tree_pollen_index" in entity_id:
             assert state.state == "4"
-        elif "grass_pollen" in entity_id:
+        elif "grass_pollen_index" in entity_id:
             assert state.state == "2"
-        elif "weed_pollen" in entity_id:
+        elif "weed_pollen_index" in entity_id:
             assert state.state == "1"
+        elif "tree_pollen_category" in entity_id:
+            assert state.state == "Very high"
+        elif "grass_pollen_category" in entity_id:
+            assert state.state == "Moderate"
+        elif "weed_pollen_category" in entity_id:
+            assert state.state == "Low"
 
 
 async def test_sensor_missing_data(
@@ -77,18 +86,18 @@ async def test_sensor_missing_data(
     assert await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
 
-    # Check that only basic sensors were created (no type-specific ones)
+    # Check that only UPI sensors were created (no type-specific ones)
     entity_registry = er.async_get(hass)
     entities = er.async_entries_for_config_entry(entity_registry, config_entry.entry_id)
 
-    # Only pollen_index and pollen_category should exist
+    # Only upi_index and upi_category should exist
     assert len(entities) == 2
 
     # Check that sensors have unknown state
     for entity in entities:
         state = hass.states.get(entity.entity_id)
         assert state is not None
-        if "pollen_index" in entity.entity_id or "pollen_category" in entity.entity_id:
+        if "upi_index" in entity.entity_id or "upi_category" in entity.entity_id:
             assert state.state == STATE_UNKNOWN
 
 
@@ -113,7 +122,9 @@ async def test_sensor_attributes(
     entities = er.async_entries_for_config_entry(entity_registry, config_entry.entry_id)
     assert len(entities) > 0
 
-    # Check attribution on first entity
-    state = hass.states.get(entities[0].entity_id)
+    # Check attribution on first enabled entity
+    enabled_entities = [e for e in entities if not e.disabled]
+    assert len(enabled_entities) > 0
+    state = hass.states.get(enabled_entities[0].entity_id)
     assert state is not None
     assert state.attributes.get("attribution") == "Data provided by Google Pollen"

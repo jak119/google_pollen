@@ -1,11 +1,8 @@
 """Common fixtures for Google Pollen tests."""
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
-pytest_plugins = "pytest_homeassistant_custom_component"
-
 from homeassistant.const import CONF_API_KEY, CONF_LATITUDE, CONF_LONGITUDE
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -14,6 +11,8 @@ from custom_components.google_pollen.const import CONF_REFERRER
 from custom_components.google_pollen.google_pollen_api import (
     PollenCurrentConditionsData,
 )
+
+pytest_plugins = "pytest_homeassistant_custom_component"
 
 
 # This fixture enables loading custom integrations in all tests
@@ -75,9 +74,27 @@ def mock_google_pollen_api():
             index=3,
             category="High",
             types={
-                "tree": {"value": 4, "category": "Very High"},
-                "grass": {"value": 2, "category": "Moderate"},
-                "weed": {"value": 1, "category": "Low"},
+                "tree": {
+                    "value": 4,
+                    "category": "Very high",
+                    "index_description": "Very high levels of tree pollen",
+                    "color": "#ff8c00",
+                    "health_recommendations": "Wear sunglasses outdoors.",
+                },
+                "grass": {
+                    "value": 2,
+                    "category": "Moderate",
+                    "index_description": "Moderate levels of grass pollen",
+                    "color": "#ffff00",
+                    "health_recommendations": "Consider taking antihistamines.",
+                },
+                "weed": {
+                    "value": 1,
+                    "category": "Low",
+                    "index_description": "Low levels of weed pollen",
+                    "color": "#00ff00",
+                    "health_recommendations": "No specific precautions needed.",
+                },
             },
         )
     )

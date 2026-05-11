@@ -24,6 +24,20 @@ from .google_pollen_api import PollenCurrentConditionsData
 _LOGGER = logging.getLogger(__name__)
 PARALLEL_UPDATES = 0
 
+_POLLEN_TYPES = ("tree", "grass", "weed")
+
+
+def _exists_fn(
+    pollen_type: str,
+) -> Callable[[PollenCurrentConditionsData], bool]:
+    return lambda x: pollen_type in x.types
+
+
+def _value_fn(
+    pollen_type: str, field: str
+) -> Callable[[PollenCurrentConditionsData], StateType]:
+    return lambda x: x.types.get(pollen_type, {}).get(field)
+
 
 @dataclass(frozen=True, kw_only=True)
 class PollenSensorEntityDescription(SensorEntityDescription):
@@ -33,39 +47,64 @@ class PollenSensorEntityDescription(SensorEntityDescription):
     value_fn: Callable[[PollenCurrentConditionsData], StateType]
 
 
+def _per_type_sensors() -> tuple[PollenSensorEntityDescription, ...]:
+    """Generate sensor descriptions for each pollen type."""
+    sensors: list[PollenSensorEntityDescription] = []
+    for pollen_type in _POLLEN_TYPES:
+        sensors.extend(
+            [
+                PollenSensorEntityDescription(
+                    key=f"{pollen_type}_pollen_index",
+                    translation_key=f"{pollen_type}_pollen_index",
+                    state_class=SensorStateClass.MEASUREMENT,
+                    exists_fn=_exists_fn(pollen_type),
+                    value_fn=_value_fn(pollen_type, "value"),
+                ),
+                PollenSensorEntityDescription(
+                    key=f"{pollen_type}_pollen_category",
+                    translation_key=f"{pollen_type}_pollen_category",
+                    exists_fn=_exists_fn(pollen_type),
+                    value_fn=_value_fn(pollen_type, "category"),
+                ),
+                PollenSensorEntityDescription(
+                    key=f"{pollen_type}_pollen_index_description",
+                    translation_key=f"{pollen_type}_pollen_index_description",
+                    entity_registry_enabled_default=False,
+                    exists_fn=_exists_fn(pollen_type),
+                    value_fn=_value_fn(pollen_type, "index_description"),
+                ),
+                PollenSensorEntityDescription(
+                    key=f"{pollen_type}_pollen_color",
+                    translation_key=f"{pollen_type}_pollen_color",
+                    entity_registry_enabled_default=False,
+                    exists_fn=_exists_fn(pollen_type),
+                    value_fn=_value_fn(pollen_type, "color"),
+                ),
+                PollenSensorEntityDescription(
+                    key=f"{pollen_type}_pollen_health_recommendations",
+                    translation_key=f"{pollen_type}_pollen_health_recommendations",
+                    entity_registry_enabled_default=False,
+                    exists_fn=_exists_fn(pollen_type),
+                    value_fn=_value_fn(pollen_type, "health_recommendations"),
+                ),
+            ]
+        )
+    return tuple(sensors)
+
+
 POLLEN_SENSOR_TYPES: tuple[PollenSensorEntityDescription, ...] = (
     PollenSensorEntityDescription(
-        key="pollen_index",
-        translation_key="pollen_index",
+        key="upi_index",
+        translation_key="upi_index",
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda x: x.index,
     ),
     PollenSensorEntityDescription(
-        key="pollen_category",
-        translation_key="pollen_category",
+        key="upi_category",
+        translation_key="upi_category",
         value_fn=lambda x: x.category,
     ),
-    PollenSensorEntityDescription(
-        key="tree_pollen",
-        translation_key="tree_pollen",
-        state_class=SensorStateClass.MEASUREMENT,
-        exists_fn=lambda x: "tree" in x.types,
-        value_fn=lambda x: x.types.get("tree", {}).get("value"),
-    ),
-    PollenSensorEntityDescription(
-        key="grass_pollen",
-        translation_key="grass_pollen",
-        state_class=SensorStateClass.MEASUREMENT,
-        exists_fn=lambda x: "grass" in x.types,
-        value_fn=lambda x: x.types.get("grass", {}).get("value"),
-    ),
-    PollenSensorEntityDescription(
-        key="weed_pollen",
-        translation_key="weed_pollen",
-        state_class=SensorStateClass.MEASUREMENT,
-        exists_fn=lambda x: "weed" in x.types,
-        value_fn=lambda x: x.types.get("weed", {}).get("value"),
-    ),
+    *_per_type_sensors(),
 )
 
 

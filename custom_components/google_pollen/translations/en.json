@@ -78,20 +78,56 @@
   },
   "entity": {
     "sensor": {
-      "pollen_index": {
-        "name": "Pollen index"
+      "upi_index": {
+        "name": "UPI index"
       },
-      "pollen_category": {
-        "name": "Pollen category"
+      "upi_category": {
+        "name": "UPI category"
       },
-      "tree_pollen": {
-        "name": "Tree pollen"
+      "tree_pollen_index": {
+        "name": "Tree pollen index"
       },
-      "grass_pollen": {
-        "name": "Grass pollen"
+      "tree_pollen_category": {
+        "name": "Tree pollen category"
       },
-      "weed_pollen": {
-        "name": "Weed pollen"
+      "tree_pollen_index_description": {
+        "name": "Tree pollen index description"
+      },
+      "tree_pollen_color": {
+        "name": "Tree pollen color"
+      },
+      "tree_pollen_health_recommendations": {
+        "name": "Tree pollen health recommendations"
+      },
+      "grass_pollen_index": {
+        "name": "Grass pollen index"
+      },
+      "grass_pollen_category": {
+        "name": "Grass pollen category"
+      },
+      "grass_pollen_index_description": {
+        "name": "Grass pollen index description"
+      },
+      "grass_pollen_color": {
+        "name": "Grass pollen color"
+      },
+      "grass_pollen_health_recommendations": {
+        "name": "Grass pollen health recommendations"
+      },
+      "weed_pollen_index": {
+        "name": "Weed pollen index"
+      },
+      "weed_pollen_category": {
+        "name": "Weed pollen category"
+      },
+      "weed_pollen_index_description": {
+        "name": "Weed pollen index description"
+      },
+      "weed_pollen_color": {
+        "name": "Weed pollen color"
+      },
+      "weed_pollen_health_recommendations": {
+        "name": "Weed pollen health recommendations"
       }
     }
   },
