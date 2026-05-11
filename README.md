@@ -4,17 +4,26 @@ Provides pollen index and category sensors for one or more locations using the [
 
 ## Sensors
 
-Each configured location exposes five sensors:
+Each configured location exposes the following sensors:
+
+### Overall
 
 | Sensor | Description |
 |--------|-------------|
-| Pollen index | Overall UPI value (0–5), the maximum across in-season pollen types |
-| Pollen category | Text label for the overall level (e.g., "Low", "Medium", "High") |
-| Tree pollen | UPI value for tree pollen |
-| Grass pollen | UPI value for grass pollen |
-| Weed pollen | UPI value for weed pollen |
+| UPI index | Overall UPI value (0–5), the maximum across in-season pollen types |
+| UPI category | Text label for the overall level (e.g., "Low", "High") |
 
-Tree, grass, and weed sensors include long-term statistics support.
+### Per pollen type (tree, grass, weed)
+
+| Sensor | Default | Description |
+|--------|---------|-------------|
+| {Type} pollen index | Enabled | UPI value (0–5) for that pollen type |
+| {Type} pollen category | Enabled | Text label for that type's level |
+| {Type} pollen index description | Disabled | Textual explanation of the current index level |
+| {Type} pollen color | Disabled | Hex color code representing the index level (e.g., `#ff0000`) |
+| {Type} pollen health recommendations | Disabled | Health guidance for the current pollen level |
+
+The pollen index sensors include long-term statistics support. Disabled-by-default sensors can be enabled individually under **Settings → Devices & services**.
 
 ## Prerequisites
 
