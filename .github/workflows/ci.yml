@@ -31,7 +31,7 @@ jobs:
           cache: pip
 
       - name: Install dependencies
-        run: pip install -e ".[test]"
+        run: pip install ".[test]"
 
       - name: Run tests
         run: pytest tests/

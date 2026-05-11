@@ -3,9 +3,6 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
-pytest_plugins = "pytest_homeassistant_custom_component"
-
 from homeassistant.const import CONF_API_KEY, CONF_LATITUDE, CONF_LONGITUDE
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -14,6 +11,8 @@ from custom_components.google_pollen.const import CONF_REFERRER
 from custom_components.google_pollen.google_pollen_api import (
     PollenCurrentConditionsData,
 )
+
+pytest_plugins = "pytest_homeassistant_custom_component"
 
 
 # This fixture enables loading custom integrations in all tests
