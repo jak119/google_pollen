@@ -50,3 +50,7 @@ You need a Google Cloud project with the **Pollen API** enabled and a valid API 
 2. Search for **Google Pollen**.
 3. Enter your API key and pick your first location.
 4. Additional locations can be added later via the integration's **Add location** option.
+
+## Disclaimer
+
+This integration was largely developed with the help of Claude. I spent time on this for my own use however decided to also make it available in case it'd help others.
