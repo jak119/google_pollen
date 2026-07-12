@@ -78,12 +78,6 @@
   },
   "entity": {
     "sensor": {
-      "upi_index": {
-        "name": "UPI index"
-      },
-      "upi_category": {
-        "name": "UPI category"
-      },
       "tree_pollen_index": {
         "name": "Tree pollen index"
       },

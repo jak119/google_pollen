@@ -31,8 +31,6 @@ async def test_coordinator_update_success(
     await coordinator.async_refresh()
 
     assert coordinator.data is not None
-    assert coordinator.data.index == 3
-    assert coordinator.data.category == "High"
     assert "tree" in coordinator.data.types
     assert coordinator.data.types["tree"]["value"] == 4
 
