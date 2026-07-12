@@ -93,17 +93,6 @@ def _per_type_sensors() -> tuple[PollenSensorEntityDescription, ...]:
 
 
 POLLEN_SENSOR_TYPES: tuple[PollenSensorEntityDescription, ...] = (
-    PollenSensorEntityDescription(
-        key="upi_index",
-        translation_key="upi_index",
-        state_class=SensorStateClass.MEASUREMENT,
-        value_fn=lambda x: x.index,
-    ),
-    PollenSensorEntityDescription(
-        key="upi_category",
-        translation_key="upi_category",
-        value_fn=lambda x: x.category,
-    ),
     *_per_type_sensors(),
 )
 

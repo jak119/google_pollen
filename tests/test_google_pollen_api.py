@@ -82,9 +82,6 @@ async def test_api_get_current_conditions_success(mock_session):
     result = await api.async_get_current_conditions(37.7749, -122.4194)
 
     assert isinstance(result, PollenCurrentConditionsData)
-    # Overall index is the max value across in-season types (tree=4, grass=2; weed not in season)
-    assert result.index == 4
-    assert result.category == "Very High"
     assert "tree" in result.types
     assert result.types["tree"]["value"] == 4
     assert "grass" in result.types
@@ -151,8 +148,8 @@ async def test_api_timeout(mock_session):
         await api.async_get_current_conditions(37.7749, -122.4194)
 
 
-async def test_api_out_of_season_excluded_from_overall(mock_session):
-    """Test that out-of-season types don't contribute to the overall index."""
+async def test_api_includes_out_of_season_types(mock_session):
+    """Test that out-of-season pollen type data is included."""
     api = GooglePollenApi(mock_session, "test_api_key")
     response = {
         "dailyInfo": [
@@ -176,9 +173,8 @@ async def test_api_out_of_season_excluded_from_overall(mock_session):
 
     result = await api.async_get_current_conditions(37.7749, -122.4194)
 
-    # Tree is out of season so grass (1) wins, not tree (5)
-    assert result.index == 1
-    assert result.category == "Low"
+    assert result.types["tree"]["value"] == 5
+    assert result.types["grass"]["value"] == 1
 
 
 async def test_api_empty_response(mock_session):
@@ -188,6 +184,4 @@ async def test_api_empty_response(mock_session):
 
     result = await api.async_get_current_conditions(37.7749, -122.4194)
 
-    assert result.index is None
-    assert result.category is None
     assert result.types == {}

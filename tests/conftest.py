@@ -71,8 +71,6 @@ def mock_google_pollen_api():
     mock_api = MagicMock()
     mock_api.async_get_current_conditions = AsyncMock(
         return_value=PollenCurrentConditionsData(
-            index=3,
-            category="High",
             types={
                 "tree": {
                     "value": 4,

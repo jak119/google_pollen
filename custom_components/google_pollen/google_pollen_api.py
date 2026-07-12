@@ -20,8 +20,6 @@ class GooglePollenApiError(Exception):
 class PollenCurrentConditionsData:
     """Parsed pollen data model."""
 
-    index: int | None
-    category: str | None
     types: dict[str, dict[str, Any]]
 
 
@@ -59,8 +57,7 @@ class GooglePollenApi:
         """
         Fetch current pollen conditions for the given coordinates.
 
-        Parses the first day of the v1 forecast response and extracts
-        an overall index (max across in-season types) and per-type values
+        Parses the first day of the v1 forecast response and extracts values
         for tree, grass, and weed pollen.
         """
         params: dict[str, str | float | int] = {
@@ -95,9 +92,6 @@ class GooglePollenApi:
         code_map = {"GRASS": "grass", "TREE": "tree", "WEED": "weed"}
 
         types: dict[str, dict[str, Any]] = {}
-        max_value: int | None = None
-        max_category: str | None = None
-
         for entry in pollen_type_info:
             code = entry.get("code", "")
             key = code_map.get(code)
@@ -118,14 +112,4 @@ class GooglePollenApi:
                 ),
             }
 
-            # Track the highest index across in-season types for the overall reading
-            if entry.get("inSeason") and value is not None:
-                if max_value is None or value > max_value:
-                    max_value = value
-                    max_category = category
-
-        return PollenCurrentConditionsData(
-            index=max_value,
-            category=max_category,
-            types=types,
-        )
+        return PollenCurrentConditionsData(types=types)

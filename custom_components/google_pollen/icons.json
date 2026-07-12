@@ -1,12 +1,6 @@
 {
   "entity": {
     "sensor": {
-      "upi_index": {
-        "default": "mdi:flower-pollen"
-      },
-      "upi_category": {
-        "default": "mdi:flower-pollen"
-      },
       "tree_pollen_index": {
         "default": "mdi:tree"
       },

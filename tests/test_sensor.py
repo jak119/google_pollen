@@ -2,7 +2,6 @@
 
 
 
-from homeassistant.const import STATE_UNKNOWN
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 
@@ -28,8 +27,8 @@ async def test_sensor_setup(
 
     # Get all entities for the integration
     entities = er.async_entries_for_config_entry(entity_registry, config_entry.entry_id)
-    # 2 UPI sensors + 3 types × 5 sensors each = 17 total
-    assert len(entities) == 17
+    # 3 pollen types × 5 sensors each = 15 total
+    assert len(entities) == 15
 
     # Get entity IDs
     entity_ids = [entity.entity_id for entity in entities]
@@ -40,11 +39,7 @@ async def test_sensor_setup(
         if state is None:
             # Disabled-by-default sensors won't have a state
             continue
-        if "upi_index" in entity_id:
-            assert state.state == "3"
-        elif "upi_category" in entity_id:
-            assert state.state == "High"
-        elif "tree_pollen_index" in entity_id:
+        if "tree_pollen_index" in entity_id:
             assert state.state == "4"
         elif "grass_pollen_index" in entity_id:
             assert state.state == "2"
@@ -73,8 +68,6 @@ async def test_sensor_missing_data(
     # Mock API with minimal data - need to modify the class-level mock
     mock_google_pollen_api_class.async_get_current_conditions.return_value = (
         PollenCurrentConditionsData(
-            index=None,
-            category=None,
             types={},
         )
     )
@@ -86,19 +79,11 @@ async def test_sensor_missing_data(
     assert await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
 
-    # Check that only UPI sensors were created (no type-specific ones)
+    # Check that no sensors were created without type-specific data
     entity_registry = er.async_get(hass)
     entities = er.async_entries_for_config_entry(entity_registry, config_entry.entry_id)
 
-    # Only upi_index and upi_category should exist
-    assert len(entities) == 2
-
-    # Check that sensors have unknown state
-    for entity in entities:
-        state = hass.states.get(entity.entity_id)
-        assert state is not None
-        if "upi_index" in entity.entity_id or "upi_category" in entity.entity_id:
-            assert state.state == STATE_UNKNOWN
+    assert not entities
 
 
 async def test_sensor_attributes(
