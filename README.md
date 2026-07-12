@@ -1,17 +1,10 @@
 # Google Pollen integration for Home Assistant
 
-Provides pollen index and category sensors for one or more locations using the [Google Pollen API](https://developers.google.com/maps/documentation/pollen/overview).
+Provides per-pollen-type index and category sensors for one or more locations using the [Google Pollen API](https://developers.google.com/maps/documentation/pollen/overview).
 
 ## Sensors
 
 Each configured location exposes the following sensors:
-
-### Overall
-
-| Sensor | Description |
-|--------|-------------|
-| UPI index | Overall UPI value (0–5), the maximum across in-season pollen types |
-| UPI category | Text label for the overall level (e.g., "Low", "High") |
 
 ### Per pollen type (tree, grass, weed)
 
@@ -32,6 +25,8 @@ You need a Google Cloud project with the **Pollen API** enabled and a valid API 
 ## Installation
 
 ### HACS (recommended)
+
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=jak119&repository=google_pollen&category=integration)
 
 1. Open HACS in Home Assistant.
 2. Go to **Integrations** and click the menu (⋮) → **Custom repositories**.
