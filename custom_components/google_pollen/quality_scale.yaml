@@ -28,7 +28,7 @@ rules:
   # Silver
   log-when-unavailable: done
   config-entry-unloading: done
-  reauthentication-flow: todo
+  reauthentication-flow: done
   action-exceptions:
     status: exempt
     comment: Integration does not have actions
