@@ -8,6 +8,7 @@ import pytest
 from custom_components.google_pollen.google_pollen_api import (
     GooglePollenApi,
     GooglePollenApiError,
+    GooglePollenAuthError,
     PollenCurrentConditionsData,
 )
 
@@ -121,6 +122,7 @@ async def test_api_http_error(mock_session):
 
     mock_response = MagicMock()
     mock_response.status = 403
+    mock_response.json = AsyncMock(return_value={})
     mock_response.raise_for_status = MagicMock(
         side_effect=aiohttp.ClientResponseError(
             request_info=MagicMock(),
@@ -136,6 +138,52 @@ async def test_api_http_error(mock_session):
 
     with pytest.raises(GooglePollenApiError):
         await api.async_get_current_conditions(37.7749, -122.4194)
+
+
+@pytest.mark.parametrize(
+    ("status", "reason", "auth_error"),
+    [
+        (401, None, True),
+        (400, "API_KEY_INVALID", True),
+        (403, "API_KEY_SERVICE_BLOCKED", True),
+        (403, "API_KEY_HTTP_REFERRER_BLOCKED", True),
+        (403, "RATE_LIMIT_EXCEEDED", False),
+        (403, "SERVICE_DISABLED", False),
+        (400, "INVALID_ARGUMENT", False),
+        (429, "RATE_LIMIT_EXCEEDED", False),
+        (500, None, False),
+    ],
+)
+async def test_api_error_classification(mock_session, status, reason, auth_error):
+    """Only credential errors require reauthentication."""
+    api = GooglePollenApi(mock_session, "secret_key")
+    response = _setup_mock_session(
+        mock_session, {"error": {"details": [{"reason": reason}]}}
+    )
+    response.status = status
+    response.raise_for_status.side_effect = aiohttp.ClientResponseError(
+        request_info=MagicMock(), history=(), status=status
+    )
+
+    with pytest.raises(GooglePollenApiError) as raised:
+        await api.async_get_current_conditions(37.7749, -122.4194)
+
+    assert isinstance(raised.value, GooglePollenAuthError) is auth_error
+    assert "secret_key" not in str(raised.value)
+
+
+async def test_api_invalid_error_body(mock_session):
+    """An unreadable error response is not mistaken for an invalid key."""
+    api = GooglePollenApi(mock_session, "secret_key")
+    response = _setup_mock_session(mock_session, {})
+    response.status = 403
+    response.json.side_effect = ValueError("Invalid JSON")
+    response.raise_for_status.side_effect = aiohttp.ClientResponseError(
+        request_info=MagicMock(), history=(), status=403
+    )
+    with pytest.raises(GooglePollenApiError) as raised:
+        await api.async_get_current_conditions(37.7749, -122.4194)
+    assert not isinstance(raised.value, GooglePollenAuthError)
 
 
 async def test_api_timeout(mock_session):

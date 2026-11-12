@@ -8,12 +8,14 @@ from typing import Final
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import DOMAIN
 from .google_pollen_api import (
     GooglePollenApi,
     GooglePollenApiError,
+    GooglePollenAuthError,
     PollenCurrentConditionsData,
 )
 
@@ -53,6 +55,8 @@ class GooglePollenUpdateCoordinator(DataUpdateCoordinator[PollenCurrentCondition
         """Fetch pollen data for this coordinate."""
         try:
             return await self.client.async_get_current_conditions(self.lat, self.long)
+        except GooglePollenAuthError as ex:
+            raise ConfigEntryAuthFailed("API key is invalid or not authorized") from ex
         except GooglePollenApiError as ex:
             _LOGGER.debug("Cannot fetch pollen data: %s", str(ex))
             raise UpdateFailed(

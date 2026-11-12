@@ -16,6 +16,10 @@ class GooglePollenApiError(Exception):
     """Generic error from Google Pollen client."""
 
 
+class GooglePollenAuthError(GooglePollenApiError):
+    """The API key is invalid or not authorized."""
+
+
 @dataclass
 class PollenCurrentConditionsData:
     """Parsed pollen data model."""
@@ -77,10 +81,44 @@ class GooglePollenApi:
                 headers=headers,
                 timeout=aiohttp.ClientTimeout(total=20),
             ) as resp:
+                if resp.status == 401:
+                    raise GooglePollenAuthError("API key is not authorized")
+                if resp.status in (400, 403):
+                    try:
+                        error_data = await resp.json()
+                    except (aiohttp.ContentTypeError, ValueError):
+                        error_data = {}
+                    if isinstance(error_data, dict):
+                        error = error_data.get("error")
+                        if isinstance(error, dict) and isinstance(
+                            error.get("details"), list
+                        ):
+                            for detail in error["details"]:
+                                if isinstance(detail, dict) and detail.get(
+                                    "reason"
+                                ) in {
+                                    "API_KEY_INVALID",
+                                    "API_KEY_EXPIRED",
+                                    "API_KEY_DELETED",
+                                    "API_KEY_SERVICE_BLOCKED",
+                                    "API_KEY_HTTP_REFERRER_BLOCKED",
+                                    "API_KEY_IP_ADDRESS_BLOCKED",
+                                    "API_KEY_ANDROID_APP_BLOCKED",
+                                    "API_KEY_IOS_APP_BLOCKED",
+                                }:
+                                    raise GooglePollenAuthError(
+                                        "API key is invalid or not authorized"
+                                    )
                 resp.raise_for_status()
                 data = await resp.json()
-        except Exception as err:
-            raise GooglePollenApiError(str(err)) from err
+        except GooglePollenAuthError:
+            raise
+        except aiohttp.ClientResponseError as err:
+            raise GooglePollenApiError(f"HTTP error {err.status}") from None
+        except (aiohttp.ClientError, TimeoutError, ValueError) as err:
+            raise GooglePollenApiError(
+                f"Request failed: {type(err).__name__}"
+            ) from None
 
         # Navigate to pollenTypeInfo from the first day's entry
         daily_info = data.get("dailyInfo") or []

@@ -8,6 +8,10 @@ from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.google_pollen.const import DOMAIN
+from custom_components.google_pollen.google_pollen_api import (
+    GooglePollenApiError,
+    GooglePollenAuthError,
+)
 
 
 async def test_setup_entry(
@@ -100,3 +104,45 @@ async def test_update_options(
 
     # Entry should still be loaded
     assert config_entry.state is ConfigEntryState.LOADED
+
+
+async def test_setup_auth_failure_starts_reauth(
+    hass: HomeAssistant,
+    mock_google_pollen_api_class,
+    mock_config_entry_data,
+    mock_subentry_data,
+) -> None:
+    """An invalid key during initial setup starts reauthentication."""
+    from tests.conftest import create_mock_entry_with_subentry
+
+    entry, _ = create_mock_entry_with_subentry(
+        hass, mock_config_entry_data, mock_subentry_data
+    )
+    mock_google_pollen_api_class.async_get_current_conditions.side_effect = (
+        GooglePollenAuthError("Invalid key")
+    )
+    assert not await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert entry.state is ConfigEntryState.SETUP_ERROR
+    assert len(hass.config_entries.flow.async_progress_by_handler(DOMAIN)) == 1
+
+
+async def test_setup_transient_failure_does_not_start_reauth(
+    hass: HomeAssistant,
+    mock_google_pollen_api_class,
+    mock_config_entry_data,
+    mock_subentry_data,
+) -> None:
+    """A temporary API failure retries setup without reauthentication."""
+    from tests.conftest import create_mock_entry_with_subentry
+
+    entry, _ = create_mock_entry_with_subentry(
+        hass, mock_config_entry_data, mock_subentry_data
+    )
+    mock_google_pollen_api_class.async_get_current_conditions.side_effect = (
+        GooglePollenApiError("Temporary failure")
+    )
+    assert not await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert entry.state is ConfigEntryState.SETUP_RETRY
+    assert not hass.config_entries.flow.async_progress_by_handler(DOMAIN)

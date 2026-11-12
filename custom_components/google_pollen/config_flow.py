@@ -27,7 +27,11 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import LocationSelector, LocationSelectorConfig
 
 from .const import CONF_REFERRER, DOMAIN, SECTION_API_KEY_OPTIONS
-from .google_pollen_api import GooglePollenApi, GooglePollenApiError
+from .google_pollen_api import (
+    GooglePollenApi,
+    GooglePollenApiError,
+    GooglePollenAuthError,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -53,6 +57,8 @@ async def _validate_input(
             lat=user_input[CONF_LOCATION][CONF_LATITUDE],
             lon=user_input[CONF_LOCATION][CONF_LONGITUDE],
         )
+    except GooglePollenAuthError:
+        errors["base"] = "invalid_auth"
     except GooglePollenApiError as err:
         errors["base"] = "cannot_connect"
         description_placeholders["error_message"] = str(err)
@@ -104,10 +110,65 @@ def _is_location_name_already_configured(hass: HomeAssistant, new_data: str) -> 
     return False
 
 
+def _is_api_key_configured(
+    hass: HomeAssistant, api_key: str, exclude_entry_id: str
+) -> bool:
+    """Check if an API key belongs to another entry."""
+    return any(
+        entry.entry_id != exclude_entry_id and entry.data.get(CONF_API_KEY) == api_key
+        for entry in hass.config_entries.async_entries(DOMAIN)
+    )
+
+
 class GooglePollenConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Google Pollen."""
 
     VERSION = 1
+
+    async def async_step_reauth(self, entry_data: dict[str, Any]) -> ConfigFlowResult:
+        """Start reauthentication for an existing entry."""
+        return await self.async_step_reauth_confirm()
+
+    async def async_step_reauth_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Validate and update the API key."""
+        entry = self._get_reauth_entry()
+        errors: dict[str, str] = {}
+        description_placeholders: dict[str, str] = {}
+        if user_input is not None:
+            api_key = user_input[CONF_API_KEY]
+            if _is_api_key_configured(self.hass, api_key, entry.entry_id):
+                errors["base"] = "already_configured"
+            else:
+                location = next(
+                    (subentry.data for subentry in entry.subentries.values()),
+                    {
+                        CONF_LATITUDE: self.hass.config.latitude,
+                        CONF_LONGITUDE: self.hass.config.longitude,
+                    },
+                )
+                api = GooglePollenApi(
+                    async_get_clientsession(self.hass),
+                    api_key,
+                    referrer=entry.data.get(CONF_REFERRER),
+                )
+                if await _validate_input(
+                    {CONF_LOCATION: location}, api, errors, description_placeholders
+                ):
+                    if _is_api_key_configured(self.hass, api_key, entry.entry_id):
+                        errors["base"] = "already_configured"
+                    else:
+                        return self.async_update_reload_and_abort(
+                            entry, data_updates={CONF_API_KEY: api_key}
+                        )
+
+        return self.async_show_form(
+            step_id="reauth_confirm",
+            data_schema=vol.Schema({vol.Required(CONF_API_KEY): str}),
+            errors=errors,
+            description_placeholders=description_placeholders,
+        )
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -127,6 +188,7 @@ class GooglePollenConfigFlow(ConfigFlow, domain=DOMAIN):
             session = async_get_clientsession(self.hass)
             api = GooglePollenApi(session, api_key, referrer=referrer)
             if await _validate_input(user_input, api, errors, description_placeholders):
+                self._async_abort_entries_match({CONF_API_KEY: api_key})
                 return self.async_create_entry(
                     title="Google Pollen",
                     data={
