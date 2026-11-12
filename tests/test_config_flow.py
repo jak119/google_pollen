@@ -1,8 +1,10 @@
 """Test the Google Pollen config flow."""
 
+import asyncio
 from types import MappingProxyType
 from unittest.mock import patch
 
+import pytest
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigSubentry
 from homeassistant.const import (
@@ -337,3 +339,102 @@ async def test_reauth_rejects_duplicate_key(
     )
     assert result["errors"] == {"base": "already_configured"}
     assert entry.data == mock_config_entry_data
+
+
+@pytest.mark.parametrize("simultaneous_release", [False, True])
+@pytest.mark.parametrize(
+    ("first_source", "second_source"),
+    [
+        (config_entries.SOURCE_REAUTH, config_entries.SOURCE_REAUTH),
+        (config_entries.SOURCE_USER, config_entries.SOURCE_REAUTH),
+        (config_entries.SOURCE_REAUTH, config_entries.SOURCE_USER),
+        (config_entries.SOURCE_USER, config_entries.SOURCE_USER),
+    ],
+)
+async def test_concurrent_flows_reject_duplicate_key(
+    hass: HomeAssistant,
+    mock_google_pollen_api,
+    first_source: str,
+    second_source: str,
+    simultaneous_release: bool,
+) -> None:
+    """Only one overlapping flow can claim a validated API key."""
+    sources = (first_source, second_source)
+    flows = []
+    entries = []
+    for index, source in enumerate(sources):
+        context = {"source": source}
+        if source == config_entries.SOURCE_REAUTH:
+            entry = MockConfigEntry(
+                domain=DOMAIN, data={CONF_API_KEY: f"old_key_{index}"}
+            )
+            entry.add_to_hass(hass)
+            entries.append(entry)
+            context["entry_id"] = entry.entry_id
+        flows.append(await hass.config_entries.flow.async_init(DOMAIN, context=context))
+
+    started = [asyncio.Event(), asyncio.Event()]
+    release = [asyncio.Event(), asyncio.Event()]
+    call_count = 0
+
+    async def validate(**kwargs: float) -> None:
+        nonlocal call_count
+        index = call_count
+        call_count += 1
+        started[index].set()
+        await release[index].wait()
+
+    mock_google_pollen_api.async_get_current_conditions.side_effect = validate
+    inputs = [
+        {CONF_API_KEY: "shared_key"}
+        if source == config_entries.SOURCE_REAUTH
+        else {
+            CONF_API_KEY: "shared_key",
+            CONF_NAME: f"Location {index}",
+            CONF_LOCATION: {CONF_LATITUDE: 10.0 + index, CONF_LONGITUDE: 20.0},
+        }
+        for index, source in enumerate(sources)
+    ]
+
+    with (
+        patch(
+            "custom_components.google_pollen.config_flow.GooglePollenApi",
+            return_value=mock_google_pollen_api,
+        ),
+        patch("custom_components.google_pollen.async_setup_entry", return_value=True),
+        patch.object(hass.config_entries, "async_reload", return_value=True),
+    ):
+        first = asyncio.create_task(
+            hass.config_entries.flow.async_configure(flows[0]["flow_id"], inputs[0])
+        )
+        await asyncio.wait_for(started[0].wait(), timeout=5)
+        second = asyncio.create_task(
+            hass.config_entries.flow.async_configure(flows[1]["flow_id"], inputs[1])
+        )
+        await asyncio.wait_for(started[1].wait(), timeout=5)
+        release[0].set()
+        if simultaneous_release:
+            release[1].set()
+        first_result = await first
+        release[1].set()
+        second_result = await second
+        await hass.async_block_till_done()
+
+    if first_source == config_entries.SOURCE_REAUTH:
+        assert first_result["reason"] == "reauth_successful"
+    else:
+        assert first_result["type"] is FlowResultType.CREATE_ENTRY
+    if second_source == config_entries.SOURCE_REAUTH:
+        assert second_result["type"] is FlowResultType.FORM
+        assert second_result["errors"] == {"base": "already_configured"}
+        assert entries[-1].data[CONF_API_KEY] == "old_key_1"
+    else:
+        assert second_result["type"] is FlowResultType.ABORT
+        assert second_result["reason"] == "already_configured"
+    assert (
+        sum(
+            entry.data.get(CONF_API_KEY) == "shared_key"
+            for entry in hass.config_entries.async_entries(DOMAIN)
+        )
+        == 1
+    )

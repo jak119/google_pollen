@@ -110,6 +110,16 @@ def _is_location_name_already_configured(hass: HomeAssistant, new_data: str) -> 
     return False
 
 
+def _is_api_key_configured(
+    hass: HomeAssistant, api_key: str, exclude_entry_id: str
+) -> bool:
+    """Check if an API key belongs to another entry."""
+    return any(
+        entry.entry_id != exclude_entry_id and entry.data.get(CONF_API_KEY) == api_key
+        for entry in hass.config_entries.async_entries(DOMAIN)
+    )
+
+
 class GooglePollenConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Google Pollen."""
 
@@ -128,11 +138,7 @@ class GooglePollenConfigFlow(ConfigFlow, domain=DOMAIN):
         description_placeholders: dict[str, str] = {}
         if user_input is not None:
             api_key = user_input[CONF_API_KEY]
-            if any(
-                other.entry_id != entry.entry_id
-                and other.data.get(CONF_API_KEY) == api_key
-                for other in self.hass.config_entries.async_entries(DOMAIN)
-            ):
+            if _is_api_key_configured(self.hass, api_key, entry.entry_id):
                 errors["base"] = "already_configured"
             else:
                 location = next(
@@ -150,9 +156,12 @@ class GooglePollenConfigFlow(ConfigFlow, domain=DOMAIN):
                 if await _validate_input(
                     {CONF_LOCATION: location}, api, errors, description_placeholders
                 ):
-                    return self.async_update_reload_and_abort(
-                        entry, data_updates={CONF_API_KEY: api_key}
-                    )
+                    if _is_api_key_configured(self.hass, api_key, entry.entry_id):
+                        errors["base"] = "already_configured"
+                    else:
+                        return self.async_update_reload_and_abort(
+                            entry, data_updates={CONF_API_KEY: api_key}
+                        )
 
         return self.async_show_form(
             step_id="reauth_confirm",
@@ -179,6 +188,7 @@ class GooglePollenConfigFlow(ConfigFlow, domain=DOMAIN):
             session = async_get_clientsession(self.hass)
             api = GooglePollenApi(session, api_key, referrer=referrer)
             if await _validate_input(user_input, api, errors, description_placeholders):
+                self._async_abort_entries_match({CONF_API_KEY: api_key})
                 return self.async_create_entry(
                     title="Google Pollen",
                     data={
