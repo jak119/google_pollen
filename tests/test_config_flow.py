@@ -1,8 +1,10 @@
 """Test the Google Pollen config flow."""
 
+from types import MappingProxyType
 from unittest.mock import patch
 
 from homeassistant import config_entries
+from homeassistant.config_entries import ConfigSubentry
 from homeassistant.const import (
     CONF_API_KEY,
     CONF_LATITUDE,
@@ -239,6 +241,14 @@ async def test_reauth_recovers_existing_entry(
     entry, subentry_id = create_mock_entry_with_subentry(
         hass, mock_config_entry_data, mock_subentry_data
     )
+    second_subentry = ConfigSubentry(
+        data=MappingProxyType({CONF_LATITUDE: 40.0, CONF_LONGITUDE: -74.0}),
+        subentry_type="location",
+        title="Second location",
+        unique_id=None,
+        subentry_id="second_location",
+    )
+    entry.subentries[second_subentry.subentry_id] = second_subentry
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     registry = er.async_get(hass)
@@ -258,10 +268,16 @@ async def test_reauth_recovers_existing_entry(
     assert flows[0]["context"]["source"] == config_entries.SOURCE_REAUTH
     flow_id = flows[0]["flow_id"]
 
-    with patch(
-        "custom_components.google_pollen.config_flow.GooglePollenApi",
-        return_value=mock_google_pollen_api,
-    ) as api_class:
+    with (
+        patch(
+            "custom_components.google_pollen.config_flow.GooglePollenApi",
+            return_value=mock_google_pollen_api,
+        ) as api_class,
+        patch(
+            "custom_components.google_pollen.GooglePollenApi",
+            return_value=mock_google_pollen_api,
+        ) as setup_api_class,
+    ):
         result = await hass.config_entries.flow.async_configure(
             flow_id, {CONF_API_KEY: "bad_key"}
         )
@@ -288,11 +304,14 @@ async def test_reauth_recovers_existing_entry(
     assert (
         api_class.call_args.kwargs["referrer"] == mock_config_entry_data[CONF_REFERRER]
     )
+    assert setup_api_class.call_args.args[1] == "new_key"
     mock_google_pollen_api.async_get_current_conditions.assert_any_await(
         lat=mock_subentry_data[CONF_LATITUDE], lon=mock_subentry_data[CONF_LONGITUDE]
     )
     assert entry.subentries[subentry_id] == subentry
+    assert entry.subentries[second_subentry.subentry_id] == second_subentry
     assert entry.runtime_data.subentries_runtime_data[subentry_id].data is not None
+    assert entry.runtime_data.subentries_runtime_data[second_subentry.subentry_id].data
     assert {
         (entity.entity_id, entity.unique_id)
         for entity in er.async_entries_for_config_entry(registry, entry.entry_id)
